@@ -21,4 +21,7 @@ AppError.badRequest = (msg) =>
 AppError.conflict = (msg) =>
   new AppError(409, 'CONFLICT', msg);
 
+AppError.unauthorized = (msg = 'Unauthorized') =>
+  new AppError(401, 'UNAUTHORIZED', msg);
+
 module.exports = AppError;
