@@ -1,7 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const AppError = require('../middleware/AppError');
+const AppError = require('../utils/AppError');
 const asyncHandler = require('../middleware/asyncHandler');
 
 const generateToken = (id, role) => {
@@ -10,17 +10,17 @@ const generateToken = (id, role) => {
   });
 };
 
-exports.register = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+exports.register = asyncHandler(async (req, res, next) => {
+  const { name, email, password, role } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    throw AppError.conflict('User with this email already exists');
+    return next(new AppError('User with this email already exists', 409));
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  const user = await User.create({ name, email, password: hashedPassword });
+  const user = await User.create({ name, email, password: hashedPassword, role });
 
   res.status(201).json({
     success: true,
@@ -35,25 +35,25 @@ exports.register = asyncHandler(async (req, res) => {
   });
 });
 
-exports.login = asyncHandler(async (req, res) => {
+exports.login = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
- 
+
   if (!email || !password) {
-    throw AppError.badRequest('Введіть email та пароль');
+    return next(new AppError('Введіть email та пароль', 400));
   }
- 
+
   const user = await User.findOne({ email }).select('+password');
   if (!user) {
-    throw AppError.unauthorized('Невірний email або пароль');
+    return next(new AppError('Невірний email або пароль', 401));
   }
- 
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw AppError.unauthorized('Невірний email або пароль');
+    return next(new AppError('Невірний email або пароль', 401));
   }
- 
+
   const token = generateToken(user._id, user.role);
- 
+
   res.status(200).json({
     success: true,
     token,
@@ -65,10 +65,10 @@ exports.login = asyncHandler(async (req, res) => {
     },
   });
 });
- 
-exports.getMe = asyncHandler(async (req, res) => {
+
+exports.getMe = asyncHandler(async (req, res, next) => {
   const user = await User.findById(req.user.id);
- 
+
   res.status(200).json({
     success: true,
     user,

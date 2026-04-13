@@ -1,4 +1,4 @@
-const AppError = require('./AppError');
+const AppError = require('../utils/AppError');
 
 module.exports = (err, req, res, next) => {
   console.error(`[${new Date().toISOString()}] ${err.code || 'ERROR'} - ${err.message}`);

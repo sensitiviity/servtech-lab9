@@ -1,4 +1,4 @@
-const AppError = require('./AppError');
+const AppError = require('../utils/AppError');
 
 module.exports = (schema, source = 'body') => (req, res, next) => {
   const { error, value } = schema.validate(req[source], {
@@ -7,11 +7,8 @@ module.exports = (schema, source = 'body') => (req, res, next) => {
   });
 
   if (error) {
-    const details = error.details.map(d => ({
-      field: d.path.join('.'),
-      message: d.message,
-    }));
-    return next(AppError.validation(details));
+    const messages = error.details.map(d => d.message).join(', ');
+    return next(new AppError(messages, 422));
   }
 
   req[source] = value;

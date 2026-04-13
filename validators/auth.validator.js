@@ -24,6 +24,8 @@ const registerSchema = Joi.object({
     'any.only': 'Passwords do not match',
     'any.required': 'Confirm password is required',
   }),
+
+  role: Joi.string().valid('user', 'admin').default('user'),
 });
 
 module.exports = { registerSchema };
