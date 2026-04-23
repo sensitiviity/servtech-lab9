@@ -1,22 +1,29 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const AppError = require('../utils/AppError');
-const asyncHandler = require('./asyncHandler');
+const catchAsync = require('../utils/catchAsync');
 
-const protect = asyncHandler(async (req, res, next) => {
+const protect = catchAsync(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new AppError('Доступ заборонено. Токен відсутній', 401));
+    return next(new AppError('Access denied. No token provided', 401));
   }
 
   const token = authHeader.split(' ')[1];
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return next(new AppError('Token has expired. Please log in again', 401));
+    }
+    return next(new AppError('Invalid token. Please log in again', 401));
+  }
 
   const user = await User.findById(decoded.id);
-  if (!user) {
-    return next(new AppError('Користувача не знайдено', 401));
-  }
+  if (!user) return next(new AppError('User not found', 401));
 
   req.user = user;
   next();
