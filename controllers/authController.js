@@ -7,7 +7,7 @@ const generateToken = (id, role) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
-exports.register = catchAsync(async (req, res) => {
+exports.register = catchAsync(async (req, res, nest) => {
   const user = await authService.registerUser(req.body);
   const token = generateToken(user._id, user.role);
 
@@ -18,7 +18,7 @@ exports.register = catchAsync(async (req, res) => {
   });
 });
 
-exports.login = catchAsync(async (req, res) => {
+exports.login = catchAsync(async (req, res, next) => {
   const user = await authService.loginUser(req.body);
   const token = generateToken(user._id, user.role);
 
@@ -29,6 +29,6 @@ exports.login = catchAsync(async (req, res) => {
   });
 });
 
-exports.getMe = catchAsync(async (req, res) => {
+exports.getMe = catchAsync(async (req, res, next) => {
   res.status(200).json({ success: true, user: req.user });
 });
