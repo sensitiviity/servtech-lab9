@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Нове завдання</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0c0c0f;
+      --surface: #131318;
+      --border: #222230;
+      --accent: #7c6dfa;
+      --accent-glow: rgba(124, 109, 250, 0.3);
+      --text: #f0eeff;
+      --muted: #6b6a80;
+      --danger: #ff5a5a;
+      --success: #4ade80;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 55% 45% at 90% 5%, rgba(124,109,250,0.10) 0%, transparent 55%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(12,12,15,0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .back-link {
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover { color: var(--text); }
+
+    main {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 48px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .page-sub {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .field { margin-bottom: 20px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 13px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    input::placeholder, textarea::placeholder { color: var(--muted); }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+
+    select option { background: #1a1a22; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s, transform 0.15s;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { color: var(--text); }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    #message {
+      margin-top: 16px;
+      font-size: 13px;
+      min-height: 20px;
+      text-align: center;
+      border-radius: 8px;
+    }
+
+    #message.error {
+      color: var(--danger);
+      background: rgba(255,90,90,0.08);
+      padding: 10px;
+    }
+
+    #message.success {
+      color: var(--success);
+      background: rgba(74,222,128,0.08);
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="/index.html" class="back-link">← Назад до списку</a>
+  </header>
+
+  <main>
+    <h1 class="page-title">Нове завдання</h1>
+    <p class="page-sub">Заповніть форму, щоб створити завдання</p>
+
+    <div class="card">
+      <form id="createForm" novalidate>
+        <div class="field">
+          <label>Назва завдання *</label>
+          <input type="text" id="title" placeholder="Що потрібно зробити?" required minlength="3">
+        </div>
+
+        <div class="field">
+          <label>Опис</label>
+          <textarea id="description" placeholder="Детальний опис завдання (необов'язково)"></textarea>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label>Статус</label>
+            <select id="status">
+              <option value="todo">To Do</option>
+              <option value="in-progress">В роботі</option>
+              <option value="done">Готово</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Пріоритет</label>
+            <select id="priority">
+              <option value="low">Низький</option>
+              <option value="medium" selected>Середній</option>
+              <option value="high">Високий</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Дедлайн</label>
+          <input type="date" id="dueDate">
+        </div>
+
+        <div class="actions">
+          <a href="/index.html" class="btn btn-ghost">Скасувати</a>
+          <button type="submit" class="btn btn-accent" id="submitBtn">Створити завдання</button>
+        </div>
+      </form>
+
+      <p id="message"></p>
+    </div>
+  </main>
+
+  <script>
+    const token = localStorage.getItem('token');
+    if (!token) window.location.href = '/login.html';
+
+    document.getElementById('createForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const msg = document.getElementById('message');
+      btn.disabled = true;
+      btn.textContent = 'Збереження...';
+      msg.className = '';
+      msg.textContent = '';
+
+      const dueDateVal = document.getElementById('dueDate').value;
+      const body = {
+        title: document.getElementById('title').value,
+        description: document.getElementById('description').value,
+        status: document.getElementById('status').value,
+        priority: document.getElementById('priority').value,
+        ...(dueDateVal && { dueDate: dueDateVal }),
+      };
+
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        msg.className = 'error';
+        msg.textContent = data.error?.message || data.message || 'Помилка створення';
+        btn.disabled = false;
+        btn.textContent = 'Створити завдання';
+        return;
+      }
+
+      msg.className = 'success';
+      setTimeout(() => window.location.href = '/index.html', 1000);
+    });
+  </script>
+</body>
+</html>

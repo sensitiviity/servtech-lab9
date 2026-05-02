@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Список задач</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0c0c0f;
+      --surface: #131318;
+      --surface2: #1a1a22;
+      --border: #222230;
+      --accent: #7c6dfa;
+      --accent-glow: rgba(124, 109, 250, 0.25);
+      --text: #f0eeff;
+      --muted: #6b6a80;
+      --danger: #ff5a5a;
+      --todo: #6b6a80;
+      --in-progress: #facc15;
+      --done: #4ade80;
+      --low: #4ade80;
+      --medium: #facc15;
+      --high: #ff5a5a;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    header {
+      top: 0;
+      z-index: 10;
+      background: rgba(12,12,15,0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      height: 60px;
+    }
+
+    .user-name {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s, transform 0.15s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover { color: var(--text); }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .page-sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    #taskList {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .task-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .task-card:hover {
+      border-color: #333348;
+    }
+
+    .task-body { flex: 1; min-width: 0; }
+
+    .task-title {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .badge-todo { background: rgba(107,106,128,0.15); color: var(--todo); }
+    .badge-in-progress { background: rgba(250,204,21,0.12); color: var(--in-progress); }
+    .badge-done { background: rgba(74,222,128,0.12); color: var(--done); }
+    .badge-low { background: rgba(74,222,128,0.10); color: var(--low); }
+    .badge-medium { background: rgba(250,204,21,0.10); color: var(--medium); }
+    .badge-high { background: rgba(255,90,90,0.12); color: var(--high); }
+
+    .task-author {
+      font-size: 12px;
+      color: var(--muted);
+      margin-left: auto;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 80px 0;
+      color: var(--muted);
+    }
+
+    .empty p { font-size: 15px; margin-top: 8px; }
+
+    #loading {
+      text-align: center;
+      padding: 60px 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-actions">
+      <span class="user-name" id="userName"></span>
+      <a href="/create.html" class="btn btn-accent">+ Нове завдання</a>
+      <button class="btn btn-ghost" id="logoutBtn">Вийти</button>
+    </div>
+  </header>
+
+  <main>
+    <h1 class="page-title">Всі завдання</h1>
+    <p class="page-sub" id="countText">Завантаження...</p>
+
+    <div id="loading"><span class="spinner"></span>Завантаження завдань...</div>
+    <div id="taskList"></div>
+  </main>
+
+  <script>
+    const statusLabel = { 'todo': 'To Do', 'in-progress': 'В процесі', 'done': 'Виконано' };
+    const priorityLabel = { 'low': 'Низький', 'medium': 'Середній', 'high': 'Високий' };
+
+    function formatDate(d) {
+      if (!d) return '';
+      return new Date(d).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
+    }
+
+    async function loadTasks() {
+      const response = await fetch('/api/tasks');
+      const data = await response.json();
+      document.getElementById('loading').style.display = 'none';
+
+      if (!response.ok) {
+        document.getElementById('countText').textContent = 'Помилка завантаження';
+        return;
+      }
+
+      const tasks = data.data || [];
+      document.getElementById('countText').textContent = `Завдань знайдено: ${tasks.length} `;
+
+      const list = document.getElementById('taskList');
+
+      if (tasks.length === 0) {
+        list.innerHTML = `<div class="empty"> 
+          <p>Завдань ще немає. <a href="/create.html" style="color:var(--accent)">Створіть перше!</a></p>
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = tasks.map((t, i) => `
+        <div class="task-card">
+          <div class="task-body">
+            <div class="task-title">${t.title}</div>
+            ${t.description ? `<div class="task-desc">${t.description}</div>` : ''}
+            <div class="task-meta">
+              <span class="badge badge-${t.status}">${statusLabel[t.status] || t.status}</span>
+              <span class="badge badge-${t.priority}">${priorityLabel[t.priority] || t.priority}</span>
+              ${t.dueDate ? `<span style="font-size:12px;color:var(--muted)">${formatDate(t.dueDate)}</span>` : ''}
+              ${t.createdBy ? `<span class="task-author">${t.createdBy.name || t.createdBy.email || ''}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      window.location.href = '/login.html';
+    });
+
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
+          .then(r => r.json())
+          .then(d => {
+            if (d.user) document.getElementById('userName').textContent = d.user.name;
+          });
+      } catch {}
+    }
+
+    loadTasks();
+  </script>
+</body>
+</html>

@@ -7,7 +7,7 @@ const generateToken = (id, role) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
-exports.register = catchAsync(async (req, res, nest) => {
+exports.register = catchAsync(async (req, res, next) => {
   const user = await authService.registerUser(req.body);
   const token = generateToken(user._id, user.role);
 
