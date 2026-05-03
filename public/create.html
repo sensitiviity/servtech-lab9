@@ -197,7 +197,7 @@
 </head>
 <body>
   <header>
-    <a href="/index.html" class="back-link">← Назад до списку</a>
+    <a href="/http://localhost:5501/index.html" class="back-link">← Назад до списку</a>
   </header>
 
   <main>
@@ -241,7 +241,7 @@
         </div>
 
         <div class="actions">
-          <a href="/index.html" class="btn btn-ghost">Скасувати</a>
+          <a href="http://localhost:5501/index.html" class="btn btn-ghost">Скасувати</a>
           <button type="submit" class="btn btn-accent" id="submitBtn">Створити завдання</button>
         </div>
       </form>
@@ -251,9 +251,18 @@
   </main>
 
   <script>
-    const token = localStorage.getItem('token');
-    if (!token) window.location.href = '/login.html';
-
+    const API_URL = 'http://localhost:3000';
+    const CLIENT_URL = 'http://localhost:5501';
+ 
+    async function checkAuth() {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        credentials: 'include',
+      });
+      if (!response.ok) window.location.href = `${CLIENT_URL}/login.html`;
+    }
+ 
+    checkAuth();
+ 
     document.getElementById('createForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -262,7 +271,7 @@
       btn.textContent = 'Збереження...';
       msg.className = '';
       msg.textContent = '';
-
+ 
       const dueDateVal = document.getElementById('dueDate').value;
       const body = {
         title: document.getElementById('title').value,
@@ -271,18 +280,16 @@
         priority: document.getElementById('priority').value,
         ...(dueDateVal && { dueDate: dueDateVal }),
       };
-
-      const response = await fetch('/api/tasks', {
+ 
+      const response = await fetch(`${API_URL}/api/tasks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-
+ 
       const data = await response.json();
-
+ 
       if (!response.ok) {
         msg.className = 'error';
         msg.textContent = data.error?.message || data.message || 'Помилка створення';
@@ -290,9 +297,9 @@
         btn.textContent = 'Створити завдання';
         return;
       }
-
+ 
       msg.className = 'success';
-      setTimeout(() => window.location.href = '/index.html', 1000);
+      setTimeout(() => window.location.href = `${CLIENT_URL}/index.html`, 1000);
     });
   </script>
 </body>

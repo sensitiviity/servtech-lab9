@@ -126,7 +126,7 @@
 <body>
   <div class="card">
     <h1>З поверненням</h1>
-    <p class="subtitle">Немає акаунту? <a href="/register.html">Зареєструватися</a></p>
+    <p class="subtitle">Немає акаунту? <a href="http://localhost:5501/register.html">Зареєструватися</a></p>
 
     <form id="loginForm" novalidate>
       <div class="field">
@@ -144,6 +144,8 @@
   </div>
 
   <script>
+  const API_URL = 'http://localhost:3000';
+ 
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -152,20 +154,21 @@
       btn.textContent = 'Зачекайте...';
       msg.className = '';
       msg.textContent = '';
-
+ 
       const body = {
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
       };
-
-      const response = await fetch('/api/auth/login', {
+ 
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-
+ 
       const data = await response.json();
-
+ 
       if (!response.ok) {
         msg.className = 'error';
         msg.textContent = data.error?.message || data.message || 'Невірний email або пароль';
@@ -173,9 +176,8 @@
         btn.textContent = 'Увійти';
         return;
       }
-
-      localStorage.setItem('token', data.token);
-      window.location.href = '/index.html';
+ 
+      window.location.href = 'http://localhost:5501/index.html';
     });
   </script>
 </body>

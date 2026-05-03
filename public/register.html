@@ -136,7 +136,7 @@
 <body>
   <div class="card">
     <h1>Створити акаунт</h1>
-    <p class="subtitle">Вже є акаунт? <a href="/login.html">Увійти</a></p>
+    <p class="subtitle">Вже є акаунт? <a href="http://localhost:5501/login.html">Увійти</a></p>
 
     <form id="registerForm" novalidate>
       <div class="field">
@@ -162,6 +162,8 @@
   </div>
 
   <script>
+    const API_URL = 'http://localhost:3000';
+ 
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
@@ -170,22 +172,23 @@
       btn.textContent = 'Зачекайте...';
       msg.className = '';
       msg.textContent = '';
-
+ 
       const body = {
         name: document.getElementById('name').value,
         email: document.getElementById('email').value,
         password: document.getElementById('password').value,
         confirmPassword: document.getElementById('confirmPassword').value,
       };
-
-      const response = await fetch('/api/auth/register', {
+ 
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-
+ 
       const data = await response.json();
-
+ 
       if (!response.ok) {
         msg.className = 'error';
         msg.textContent = data.error?.message || data.message || 'Помилка реєстрації';
@@ -193,10 +196,9 @@
         btn.textContent = 'Зареєструватися';
         return;
       }
-
-      localStorage.setItem('token', data.token);
+ 
       msg.className = 'success';
-      setTimeout(() => window.location.href = '/index.html', 1000);
+      setTimeout(() => window.location.href = 'http://localhost:5501/index.html', 1000);
     });
   </script>
 </body>

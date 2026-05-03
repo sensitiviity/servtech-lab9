@@ -203,69 +203,76 @@
   </main>
 
   <script>
-    const statusLabel = { 'todo': 'To Do', 'in-progress': 'В процесі', 'done': 'Виконано' };
+    const API_URL = 'http://localhost:3000';
+    const CLIENT_URL = 'http://localhost:5501';
+ 
+    const statusLabel   = { 'todo': 'To Do', 'in-progress': 'В роботі', 'done': 'Готово' };
     const priorityLabel = { 'low': 'Низький', 'medium': 'Середній', 'high': 'Високий' };
-
+ 
     function formatDate(d) {
       if (!d) return '';
       return new Date(d).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
     }
-
-    async function loadTasks() {
-      const response = await fetch('/api/tasks');
+ 
+    async function loadUser() {
+      const response = await fetch(`${API_URL}/api/auth/me`, {
+        credentials: 'include',
+      });
+      if (!response.ok) return;
       const data = await response.json();
+      if (data.user) document.getElementById('userName').textContent = data.user.name;
+    }
+ 
+    async function loadTasks() {
+      const response = await fetch(`${API_URL}/api/tasks`, {
+        credentials: 'include',
+      });
+ 
       document.getElementById('loading').style.display = 'none';
-
+ 
       if (!response.ok) {
         document.getElementById('countText').textContent = 'Помилка завантаження';
         return;
       }
-
+ 
+      const data = await response.json();
       const tasks = data.data || [];
-      document.getElementById('countText').textContent = `Завдань знайдено: ${tasks.length} `;
-
+      document.getElementById('countText').textContent = `${tasks.length} завдань знайдено`;
+ 
       const list = document.getElementById('taskList');
-
+ 
       if (tasks.length === 0) {
-        list.innerHTML = `<div class="empty"> 
-          <p>Завдань ще немає. <a href="/create.html" style="color:var(--accent)">Створіть перше!</a></p>
+        list.innerHTML = `<div class="empty">
+          <p>Завдань ще немає.</p>
         </div>`;
         return;
       }
-
+ 
       list.innerHTML = tasks.map((t, i) => `
         <div class="task-card">
           <div class="task-body">
             <div class="task-title">${t.title}</div>
-            ${t.description ? `<div class="task-desc">${t.description}</div>` : ''}
+            ${t.description ? `<div class="task-desc" style="font-size:13px;color:var(--muted);margin-bottom:8px">${t.description}</div>` : ''}
             <div class="task-meta">
               <span class="badge badge-${t.status}">${statusLabel[t.status] || t.status}</span>
               <span class="badge badge-${t.priority}">${priorityLabel[t.priority] || t.priority}</span>
               ${t.dueDate ? `<span style="font-size:12px;color:var(--muted)">${formatDate(t.dueDate)}</span>` : ''}
-              ${t.createdBy ? `<span class="task-author">${t.createdBy.name || t.createdBy.email || ''}</span>` : ''}
+              ${t.createdBy ? `<span class="task-author">${t.createdBy.name || ''}</span>` : ''}
             </div>
           </div>
         </div>
       `).join('');
     }
-
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      localStorage.removeItem('token');
-      window.location.href = '/login.html';
+ 
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch(`${API_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      window.location.href = `${CLIENT_URL}/login.html`;
     });
-
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
-          .then(r => r.json())
-          .then(d => {
-            if (d.user) document.getElementById('userName').textContent = d.user.name;
-          });
-      } catch {}
-    }
-
+ 
+    loadUser();
     loadTasks();
   </script>
 </body>

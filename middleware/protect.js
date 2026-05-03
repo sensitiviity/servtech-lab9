@@ -4,13 +4,18 @@ const AppError = require('../utils/AppError');
 const catchAsync = require('../utils/catchAsync');
 
 const protect = catchAsync(async (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  let token = req.cookies.token;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(new AppError('Access denied. No token provided', 401));
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
   }
 
-  const token = authHeader.split(' ')[1];
+  if (!token) {
+    return next(new AppError('Access denied. No token provided', 401));
+  }
 
   let decoded;
   try {
@@ -21,10 +26,10 @@ const protect = catchAsync(async (req, res, next) => {
     }
     return next(new AppError('Invalid token. Please log in again', 401));
   }
-
+ 
   const user = await User.findById(decoded.id);
   if (!user) return next(new AppError('User not found', 401));
-
+ 
   req.user = user;
   next();
 });

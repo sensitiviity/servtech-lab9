@@ -1,6 +1,8 @@
 require('dotenv').config(); 
 const express = require('express');
 const connectDB = require('./config/db');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const AppError = require('./utils/AppError');
@@ -10,8 +12,13 @@ const app = express();
 
 connectDB();
 
-app.use(express.static('public'));
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5501',
+  credentials: true,
+}));
+app.use(cookieParser());
 
+//app.use(express.static('public'));
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
